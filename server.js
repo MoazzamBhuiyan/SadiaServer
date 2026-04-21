@@ -16,7 +16,6 @@
 // CommonJS require() — Node.js's way of importing packages
 // (React uses ES module 'import', but Node.js servers traditionally use require)
 const express = require('express')
-const cors = require('cors')
 const bcrypt = require('bcryptjs')  // Password hashing library
 const crypto = require('crypto')    // Built into Node.js — provides cryptographic utilities
 const path = require('path')        // Built into Node.js — helps build file paths
@@ -322,20 +321,13 @@ if (m5Id && db.prepare('SELECT COUNT(*) as n FROM questions WHERE module_id=?').
 }
 
 const app = express()
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://rsbweb.onrender.com',
-]
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. curl, Postman) or from allowed origins
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
-}))
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') return res.sendStatus(204)
+  next()
+})
 app.use(express.json())
 
 // POST /api/auth/register
